@@ -23,7 +23,8 @@ public class ReservationScheduler {
 
   @Scheduled(cron = "0 0 0 * * ?") // Runs every day at midnight
   public void expireOldReservations() {
-    OffsetDateTime sevenDaysAgo = OffsetDateTime.now().minusDays(DAYS_TO_EXPIRE).withHour(0).withMinute(0);
+    OffsetDateTime sevenDaysAgo = OffsetDateTime.now().minusDays(DAYS_TO_EXPIRE).withHour(0)
+        .withMinute(0);
     log.info("Looking for reservations older than {} ", sevenDaysAgo);
 
     // Find reservations that are ACTIVE and older than 7 days

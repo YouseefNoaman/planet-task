@@ -17,20 +17,20 @@ import planettask.domain.Reservation;
 @Setter
 @ToString
 @EqualsAndHashCode
-public class UserDTO  implements Serializable {
+public class UserDTO implements Serializable {
 
-    private Long userId;
+  private Long userId;
 
-    @NotBlank(message = "Username is required")
-    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
-    private String username;
+  @NotBlank(message = "Username is required")
+  @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+  private String username;
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
-    private String email;
+  @NotBlank(message = "Email is required")
+  @Email(message = "Invalid email format")
+  private String email;
 
-    @JsonIgnore
-    private Set<Reservation> reservations;
+  @JsonIgnore
+  private Set<Reservation> reservations;
 
 
 }

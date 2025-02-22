@@ -40,36 +40,36 @@ import planettask.model.ReservationStatus;
 @AllArgsConstructor
 public class Reservation extends BaseEntity {
 
-    @Id
-    @SequenceGenerator(
-        name = "reservation_sequence",
-        sequenceName = "reservation_sequence",
-        allocationSize = 1,
-        initialValue = 10000
-    )
-    @GeneratedValue(
-        strategy = GenerationType.SEQUENCE,
-        generator = "reservation_sequence"
-    )
-    @Column(name = "reservation_id", nullable = false, updatable = false)
-    private Long reservationId;
+  @Id
+  @SequenceGenerator(
+      name = "reservation_sequence",
+      sequenceName = "reservation_sequence",
+      allocationSize = 1,
+      initialValue = 10000
+  )
+  @GeneratedValue(
+      strategy = GenerationType.SEQUENCE,
+      generator = "reservation_sequence"
+  )
+  @Column(name = "reservation_id", nullable = false, updatable = false)
+  private Long reservationId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private ReservationStatus status;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status", nullable = false)
+  private ReservationStatus status;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id", nullable = false, updatable = false)
-    @Exclude
-    @JsonManagedReference
-    private User user;
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "user_id", nullable = false, updatable = false)
+  @Exclude
+  @JsonManagedReference
+  private User user;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "reservations_books",
-            joinColumns = @JoinColumn(name = "reservation_id"),
-            inverseJoinColumns = @JoinColumn(name = "book_id")
-    )
-    @Size(min = 1, max = 3, message = "Reservation must have at most 3 books")
-    private Set<Book> books;
+  @ManyToMany(fetch = FetchType.EAGER)
+  @JoinTable(
+      name = "reservations_books",
+      joinColumns = @JoinColumn(name = "reservation_id"),
+      inverseJoinColumns = @JoinColumn(name = "book_id")
+  )
+  @Size(min = 1, max = 3, message = "Reservation must have at most 3 books")
+  private Set<Book> books;
 }

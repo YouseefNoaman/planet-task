@@ -16,11 +16,12 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EntityScan(basePackages = "planettask.domain")
 public class PlanetTaskApplication {
 
-    public static void main(final String[] args) {
-        SpringApplication.run(PlanetTaskApplication.class, args);
-    }
-    @Bean
-    public ModelMapper modelMapper() {
-        return new ModelMapper();
-    }
+  public static void main(final String[] args) {
+    SpringApplication.run(PlanetTaskApplication.class, args);
+  }
+
+  @Bean
+  public ModelMapper modelMapper() {
+    return new ModelMapper();
+  }
 }

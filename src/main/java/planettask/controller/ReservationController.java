@@ -55,7 +55,8 @@ public class ReservationController {
   @ApiResponse(description = "create reservation given user ID and set of book IDs", responseCode = "201")
   public ResponseEntity<ReservationDTO> createReservation(@PathVariable Long userId,
       @RequestParam Set<Long> booksIds) throws Exception {
-    return ResponseEntity.status(HttpStatus.CREATED).body(reservationService.reserveBooks(userId, booksIds));
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(reservationService.reserveBooks(userId, booksIds));
   }
 
   @PutMapping("/cancel/{reservationId}")

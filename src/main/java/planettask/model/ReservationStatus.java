@@ -3,8 +3,8 @@ package planettask.model;
 
 public enum ReservationStatus {
 
-    ACTIVE,
-    CANCELED,
-    EXPIRED
+  ACTIVE,
+  CANCELED,
+  EXPIRED
 
 }

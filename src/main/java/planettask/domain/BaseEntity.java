@@ -23,25 +23,25 @@ import org.springframework.data.annotation.LastModifiedDate;
 @MappedSuperclass
 public abstract class BaseEntity implements Serializable {
 
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private OffsetDateTime dateCreated;
+  @CreatedDate
+  @Column(nullable = false, updatable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  private OffsetDateTime dateCreated;
 
-    @LastModifiedDate
-    @Column(nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private OffsetDateTime lastUpdated;
+  @LastModifiedDate
+  @Column(nullable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  private OffsetDateTime lastUpdated;
 
-    @PrePersist
-    protected void onCreate() {
-        dateCreated = lastUpdated = OffsetDateTime.now();
-    }
+  @PrePersist
+  protected void onCreate() {
+    dateCreated = lastUpdated = OffsetDateTime.now();
+  }
 
-    @PreUpdate
-    protected void onUpdate() {
-        lastUpdated = OffsetDateTime.now();
-    }
+  @PreUpdate
+  protected void onUpdate() {
+    lastUpdated = OffsetDateTime.now();
+  }
 
 
 }

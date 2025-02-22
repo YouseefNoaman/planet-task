@@ -1,11 +1,11 @@
 package planettask.repos;
 
-import planettask.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import planettask.domain.User;
 
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    boolean existsByEmailIgnoreCase(String email);
+  boolean existsByEmailIgnoreCase(String email);
 
 }

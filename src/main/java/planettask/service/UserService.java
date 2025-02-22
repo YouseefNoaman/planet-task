@@ -42,9 +42,9 @@ public class UserService {
   }
 
   public Long create(final UserDTO userDTO) {
-      if (userRepository.existsByEmailIgnoreCase(userDTO.getEmail())) {
-          throw new IllegalArgumentException("Email already exists");
-      }
+    if (userRepository.existsByEmailIgnoreCase(userDTO.getEmail())) {
+      throw new IllegalArgumentException("Email already exists");
+    }
     User user = modelMapper.map(userDTO, User.class);
     return userRepository.save(user).getUserId();
   }

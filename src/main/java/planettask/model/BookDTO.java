@@ -12,24 +12,24 @@ import lombok.Setter;
 @Setter
 public class BookDTO implements Serializable {
 
-    private Long id;
+  private Long id;
 
-    @NotNull
-    @Size(max = 255)
-    private String title;
+  @NotNull
+  @Size(max = 255)
+  private String title;
 
-    @NotNull
-    @Pattern(regexp = "\\d{13}", message = "ISBN must be 13 digits")
-    private String isbn;
+  @NotNull
+  @Pattern(regexp = "\\d{13}", message = "ISBN must be 13 digits")
+  private String isbn;
 
-    @NotNull
-    @Size(max = 255)
-    private String author;
+  @NotNull
+  @Size(max = 255)
+  private String author;
 
-    @NotNull
-    private Integer availableCopies;
+  @NotNull
+  private Integer availableCopies;
 
-    @NotNull
-    private Integer totalCopies;
+  @NotNull
+  private Integer totalCopies;
 
 }
