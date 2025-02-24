@@ -205,7 +205,7 @@ public class BookRepositoryTest {
   @Test
   public void testFindById_BookDoesNotExist() {
     // When
-    Optional<Book> foundBook = bookRepository.findById(999L); // Non-existing ID
+    Optional<Book> foundBook = bookRepository.findById(999L);
 
     // Then
     assertFalse(foundBook.isPresent(), "No book should be found for a non-existing ID.");

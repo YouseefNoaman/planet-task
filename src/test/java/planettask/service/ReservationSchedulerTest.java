@@ -31,18 +31,16 @@ class ReservationSchedulerTest {
 
   @BeforeEach
   void setUp() {
-    MockitoAnnotations.openMocks(this); // Initializes mocks
+    MockitoAnnotations.openMocks(this);
   }
 
   @Test
   void expireOldReservations_ShouldUpdateStatusAndRestoreBooks() {
-    // Given: A reservation older than 7 days
     OffsetDateTime sevenDaysAgo = OffsetDateTime.now().minusDays(10);
     Reservation oldReservation = new Reservation();
     oldReservation.setStatus(ReservationStatus.ACTIVE);
     oldReservation.setDateCreated(sevenDaysAgo);
 
-    // Mock books
     Book book1 = new Book();
     book1.setAvailableCopies(2);
     Book book2 = new Book();
@@ -56,21 +54,17 @@ class ReservationSchedulerTest {
 
     Set<Reservation> oldReservations = Set.of(oldReservation);
 
-    // Mock repository behavior
     when(reservationRepository.findByStatusAndDateCreatedBefore(eq(ReservationStatus.ACTIVE), any()))
         .thenReturn(oldReservations);
 
-    // When: The scheduler runs
     reservationScheduler.expireOldReservations();
 
-    // Then: The reservation status should be updated
     assertEquals(ReservationStatus.EXPIRED, oldReservation.getStatus());
 
     // Books should have their available copies increased
     assertEquals(3, book1.getAvailableCopies()); // 2 → 3
     assertEquals(2, book2.getAvailableCopies()); // 1 → 2
 
-    // Verify that the repositories were called
     verify(bookRepository, times(1)).saveAll(books);
     verify(reservationRepository, times(1)).saveAll(oldReservations);
   }
@@ -82,7 +76,6 @@ class ReservationSchedulerTest {
     oldReservation.setStatus(ReservationStatus.ACTIVE);
     oldReservation.setDateCreated(now);
 
-    // Mock books
     Book book1 = new Book();
     book1.setAvailableCopies(2);
     Book book2 = new Book();
@@ -95,17 +88,13 @@ class ReservationSchedulerTest {
     oldReservation.setBooks(books);
     Set<Reservation> oldReservations = Set.of(oldReservation);
 
-    // Mock repository behavior
     when(reservationRepository.findByStatusAndDateCreatedBefore(ReservationStatus.ACTIVE, now))
         .thenReturn(oldReservations);
 
-    // When: The scheduler runs
     reservationScheduler.expireOldReservations();
 
-    // Then: The reservation status should be updated
     assertEquals(ReservationStatus.ACTIVE, oldReservation.getStatus());
 
-    // Books should have their available copies increased
     assertEquals(2, book1.getAvailableCopies()); // 2 → 3
     assertEquals(1, book2.getAvailableCopies()); // 1 → 2
   }

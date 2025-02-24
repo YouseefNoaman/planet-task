@@ -15,7 +15,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import planettask.domain.User;
 
-@DataJpaTest // Loads only JPA-related components for testing
+@DataJpaTest
 @ExtendWith(SpringExtension.class)
 @AutoConfigureTestEntityManager
 public class UserRepositoryTest {
@@ -26,7 +26,6 @@ public class UserRepositoryTest {
 
   @BeforeEach
   void setUp() {
-    // Clear existing data before each test
     userRepository.deleteAll();
 
     user = new User();
@@ -73,7 +72,7 @@ public class UserRepositoryTest {
   @Test
   public void testFindById_UserDoesNotExist() {
     // When
-    Optional<User> foundUser = userRepository.findById(999L); // Non-existing ID
+    Optional<User> foundUser = userRepository.findById(999L);
 
     // Then
     assertFalse(foundUser.isPresent(), "No user should be found for a non-existing ID.");
@@ -134,7 +133,7 @@ public class UserRepositoryTest {
   @Test
   public void testExistsByEmailIgnoreCase_UnicodeEmail() {
     User user = new User();
-    user.setEmail("tést@example.com"); // Unicode character 'é'
+    user.setEmail("tést@example.com");
     user.setUsername("Unicode User");
     userRepository.save(user);
 

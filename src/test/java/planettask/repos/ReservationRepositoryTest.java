@@ -15,7 +15,7 @@ import planettask.domain.Reservation;
 import planettask.domain.User;
 import planettask.model.ReservationStatus;
 
-@DataJpaTest // Loads JPA components with H2
+@DataJpaTest
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2, replace = Replace.ANY)
 class ReservationRepositoryTest {
 
@@ -45,7 +45,7 @@ class ReservationRepositoryTest {
     expiredReservation = new Reservation();
     expiredReservation.setUser(user);
     expiredReservation.setStatus(ReservationStatus.ACTIVE);
-    expiredReservation.setDateCreated(OffsetDateTime.now().minusDays(10)); // Older than 7 days
+    expiredReservation.setDateCreated(OffsetDateTime.now().minusDays(10));
     reservationRepository.save(expiredReservation);
   }
 

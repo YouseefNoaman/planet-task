@@ -71,26 +71,20 @@ public class ReservationService {
 
   @CachePut(value = "reservation", key = "#reservationId")
   public ReservationDTO cancelReservation(Long reservationId) {
-    // Fetch the reservation; throw exception if not found
     Reservation reservation = reservationRepository.findById(reservationId)
         .orElseThrow(() -> new NotFoundException("Reservation not found"));
 
-    // Check if the reservation is active
     if (reservation.getStatus() != ReservationStatus.ACTIVE) {
       throw new UnsupportedOperationException("Only active reservations can be canceled");
     }
 
-    // Update the reservation status to CANCELED and save it
     reservation.setStatus(ReservationStatus.CANCELED);
     Reservation updatedReservation = reservationRepository.save(reservation);
 
-    // Update available copies for each book associated with this reservation
     Set<Book> books = updatedReservation.getBooks();
     books.forEach(book -> book.setAvailableCopies(book.getAvailableCopies() + 1));
     bookRepository.saveAll(books);
 
-    // Map the updated reservation to a DTO and return it,
-    // so that the cache is updated with the latest state.
     return modelMapper.map(updatedReservation, ReservationDTO.class);
   }
 

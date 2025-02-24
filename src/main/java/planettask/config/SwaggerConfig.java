@@ -37,7 +37,6 @@ public class SwaggerConfig {
 
   @Bean
   public OperationCustomizer operationCustomizer() {
-    // add error type to each operation
     return (operation, handlerMethod) -> {
       operation.getResponses().addApiResponse("4xx/5xx", new ApiResponse()
           .description("Error")

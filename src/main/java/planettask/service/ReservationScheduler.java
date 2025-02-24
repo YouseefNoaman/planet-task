@@ -22,12 +22,11 @@ public class ReservationScheduler {
   BookRepository bookRepository;
 
   @Scheduled(cron = "0 0 0 * * ?") // Runs every day at midnight
-  public void expireOldReservations() {
+  public final void expireOldReservations() {
     OffsetDateTime sevenDaysAgo = OffsetDateTime.now().minusDays(DAYS_TO_EXPIRE).withHour(0)
         .withMinute(0);
     log.info("Looking for reservations older than {} ", sevenDaysAgo);
 
-    // Find reservations that are ACTIVE and older than 7 days
     Set<Reservation> oldReservations = reservationRepository.findByStatusAndDateCreatedBefore(
         ReservationStatus.ACTIVE, sevenDaysAgo);
     if (oldReservations.isEmpty()) {
@@ -38,7 +37,6 @@ public class ReservationScheduler {
     for (Reservation reservation : oldReservations) {
       reservation.setStatus(ReservationStatus.EXPIRED);
 
-      // Restore book copies
       Set<Book> books = reservation.getBooks();
       books.forEach(book -> book.setAvailableCopies(book.getAvailableCopies() + 1));
       bookRepository.saveAll(books);
