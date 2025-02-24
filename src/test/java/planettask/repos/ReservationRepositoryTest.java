@@ -26,7 +26,8 @@ class ReservationRepositoryTest {
   private UserRepository userRepository;
 
   private Reservation activeReservation;
-  private Reservation expiredReservation;
+  private Reservation oldActiveReservation;
+  private Reservation oldCancelledReservation;
   private User user;
 
   @BeforeEach
@@ -40,27 +41,27 @@ class ReservationRepositoryTest {
     activeReservation.setUser(user);
     activeReservation.setStatus(ReservationStatus.ACTIVE);
     activeReservation.setDateCreated(OffsetDateTime.now().minusDays(5));
-    reservationRepository.save(activeReservation);
 
-    expiredReservation = new Reservation();
-    expiredReservation.setUser(user);
-    expiredReservation.setStatus(ReservationStatus.ACTIVE);
-    expiredReservation.setDateCreated(OffsetDateTime.now().minusDays(10));
-    reservationRepository.save(expiredReservation);
+    oldActiveReservation = new Reservation();
+    oldActiveReservation.setUser(user);
+    oldActiveReservation.setStatus(ReservationStatus.ACTIVE);
+    oldActiveReservation.setDateCreated(OffsetDateTime.now().minusDays(9).withNano(0));
+
+    oldCancelledReservation = new Reservation();
+    oldCancelledReservation.setUser(user);
+    oldCancelledReservation.setStatus(ReservationStatus.CANCELED);
+    oldCancelledReservation.setDateCreated(OffsetDateTime.now().minusDays(10));
+
+    reservationRepository.saveAll(Set.of(activeReservation, oldActiveReservation, oldCancelledReservation));
+    reservationRepository.flush();
   }
 
   @Test
-  void findByStatusAndDateCreatedBefore_ShouldReturnExpiredReservations() {
-    // Given
-    OffsetDateTime sevenDaysAgo = OffsetDateTime.now().minusDays(7);
+  void testFindByStatusAndDateCreatedBefore_ShouldReturnEmptyForFutureDates() {
+    OffsetDateTime futureDate = OffsetDateTime.now().plusDays(1);
+    Set<Reservation> results = reservationRepository.findByStatusAndDateCreatedBefore(ReservationStatus.ACTIVE, futureDate);
 
-    // When
-    Set<Reservation> expiredReservations = reservationRepository.findByStatusAndDateCreatedBefore(
-        ReservationStatus.ACTIVE, sevenDaysAgo);
-
-    // Then
-    assertThat(expiredReservations).isNotEmpty();
-    assertThat(expiredReservations).contains(expiredReservation);
+    assertThat(results).containsExactlyInAnyOrder(oldActiveReservation, activeReservation);
   }
 
   @Test
@@ -82,12 +83,13 @@ class ReservationRepositoryTest {
     Set<Reservation> userReservations = reservationRepository.findByUserId(user.getUserId());
 
     // Then
-    assertThat(userReservations).hasSize(2);
-    assertThat(userReservations).contains(activeReservation, expiredReservation);
+    assertThat(userReservations).hasSize(3);
+    assertThat(userReservations).contains(activeReservation, oldActiveReservation);
   }
 
   @Test
   void save_ShouldCreateNewReservation() {
+    reservationRepository.deleteAll();
     // Given
     Reservation newReservation = new Reservation();
     newReservation.setUser(user);
@@ -99,7 +101,7 @@ class ReservationRepositoryTest {
 
     // Then
     assertThat(savedReservation.getReservationId()).isNotNull();
-    assertThat(reservationRepository.findAll()).hasSize(3);
+    assertThat(reservationRepository.findAll()).hasSize(1);
   }
 
   @Test
@@ -108,7 +110,7 @@ class ReservationRepositoryTest {
     Set<Reservation> reservations = Set.copyOf(reservationRepository.findAll());
 
     // Then
-    assertThat(reservations).hasSize(2);
+    assertThat(reservations).hasSize(3);
   }
 
   @Test

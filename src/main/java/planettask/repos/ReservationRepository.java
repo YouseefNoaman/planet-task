@@ -11,7 +11,6 @@ import planettask.model.ReservationStatus;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
-  @Query("SELECT r FROM Reservation r WHERE r.status = :status AND r.dateCreated < :date")
   Set<Reservation> findByStatusAndDateCreatedBefore(
       @Param("status") ReservationStatus status,
       @Param("date") OffsetDateTime date
