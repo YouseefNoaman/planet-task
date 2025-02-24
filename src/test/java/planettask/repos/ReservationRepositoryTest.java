@@ -1,6 +1,8 @@
 package planettask.repos;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +47,7 @@ class ReservationRepositoryTest {
     oldActiveReservation = new Reservation();
     oldActiveReservation.setUser(user);
     oldActiveReservation.setStatus(ReservationStatus.ACTIVE);
-    oldActiveReservation.setDateCreated(OffsetDateTime.now().minusDays(9).withNano(0));
+    oldActiveReservation.setDateCreated(OffsetDateTime.now().minusDays(9));
 
     oldCancelledReservation = new Reservation();
     oldCancelledReservation.setUser(user);
@@ -54,6 +56,14 @@ class ReservationRepositoryTest {
 
     reservationRepository.saveAll(Set.of(activeReservation, oldActiveReservation, oldCancelledReservation));
     reservationRepository.flush();
+  }
+
+  @Test
+  void testFindByStatusAndDateCreatedBefore_ShouldReturnOldActiveReservations() {
+    OffsetDateTime thresholdDate = OffsetDateTime.now().minusDays(7);
+    Set<Reservation> results = reservationRepository.findByStatusAndDateCreatedBefore(ReservationStatus.ACTIVE, thresholdDate);
+
+    assertThat(results).containsExactlyInAnyOrder(oldActiveReservation);
   }
 
   @Test

@@ -35,7 +35,12 @@ public abstract class BaseEntity implements Serializable {
 
   @PrePersist
   protected void onCreate() {
-    dateCreated = lastUpdated = OffsetDateTime.now();
+    if (dateCreated == null) {
+      this.dateCreated = OffsetDateTime.now();
+    }
+    if (lastUpdated == null) {
+      this.lastUpdated = OffsetDateTime.now();
+    }
   }
 
   @PreUpdate
