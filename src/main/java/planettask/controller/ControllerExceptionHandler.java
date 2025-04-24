@@ -105,7 +105,10 @@ public class ControllerExceptionHandler {
             MethodArgumentTypeMismatchException ex,
             WebRequest request) {
         String message = String.format("Parameter '%s' should be of type %s",
-                ex.getName(), ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown");
+                ex.getName(),
+                Optional.ofNullable(ex.getRequiredType())
+                        .map(Class::getSimpleName)
+                        .orElse("unknown"));
         log.warn("Type mismatch: {}", message);
         return new ResponseEntity<>(
                 buildErrorResponse(message, HttpStatus.BAD_REQUEST, request),
