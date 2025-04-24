@@ -1,86 +1,163 @@
 package planettask.controller;
 
 import jakarta.validation.ConstraintViolationException;
-import java.time.OffsetDateTime;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
+import planettask.model.ErrorResponse;
 import planettask.util.NotFoundException;
 
 @RestControllerAdvice
 public class ControllerExceptionHandler {
 
-  // Handle 400 - Validation Errors
-  @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<Map<String, String>> handleValidationErrors(
-      MethodArgumentNotValidException ex) {
-    Map<String, String> errors = ex.getBindingResult()
-        .getFieldErrors()
-        .stream().filter(fieldError -> fieldError.getDefaultMessage() != null)
-        .collect(Collectors.toMap(
-            FieldError::getField,
-            DefaultMessageSourceResolvable::getDefaultMessage,
-            (existing, replacement) -> existing // Keep first error in case of duplicates
-        ));
+    private static final Logger log = LoggerFactory.getLogger(ControllerExceptionHandler.class);
 
-    return ResponseEntity.badRequest().body(errors);
-  }
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationErrors(
+            MethodArgumentNotValidException ex,
+            WebRequest request) {
+        Map<String, String> errors = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .filter(fieldError -> fieldError.getDefaultMessage() != null)
+                .collect(Collectors.toMap(
+                        FieldError::getField,
+                        DefaultMessageSourceResolvable::getDefaultMessage,
+                        (existing, replacement) -> existing
+                ));
 
-  // Handle 400 - Constraint Violations
-  @ExceptionHandler({NotFoundException.class, ConstraintViolationException.class})
-  public ResponseEntity<?> handleConstraintViolation(ConstraintViolationException ex,
-      WebRequest request) {
-    return buildErrorResponse("Validation error: " + ex.getMessage(), HttpStatus.BAD_REQUEST,
-        request);
-  }
+        ErrorResponse errorResponse = buildErrorResponse(
+                "Validation failed",
+                HttpStatus.BAD_REQUEST,
+                request);
+        errorResponse.setValidationErrors(errors);
 
-  // Handle 409 - Data Integrity Violation (e.g., unique constraint failure)
-  @ExceptionHandler(DataIntegrityViolationException.class)
-  public ResponseEntity<?> handleDataIntegrityViolation(DataIntegrityViolationException ex,
-      WebRequest request) {
-    return buildErrorResponse("Database error: " + ex.getRootCause(), HttpStatus.CONFLICT, request);
-  }
+        log.warn("Validation failed: {}", errors);
+        return ResponseEntity.badRequest().body(errorResponse);
+    }
 
-  // Handle 400 - Invalid Request Errors (e.g., ResponseStatusException)
-  @ExceptionHandler(ResponseStatusException.class)
-  public ResponseEntity<?> handleResponseStatusException(ResponseStatusException ex,
-      WebRequest request) {
-    return buildErrorResponse(ex.getReason(), HttpStatus.valueOf(ex.getStatusCode().value()),
-        request);
-  }
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(
+            ConstraintViolationException ex,
+            WebRequest request) {
+        log.warn("Constraint violation: {}", ex.getMessage());
+        return new ResponseEntity<>(
+                buildErrorResponse("Validation error: " + ex.getMessage(),
+                        HttpStatus.BAD_REQUEST, request),
+                HttpStatus.BAD_REQUEST);
+    }
 
-  // Handle 500 - Generic Internal Server Errors
-  @ExceptionHandler(Exception.class)
-  public ResponseEntity<?> handleGenericException(Exception ex, WebRequest request) {
-    return buildErrorResponse("An unexpected error occurred: " + ex.getCause(),
-        HttpStatus.INTERNAL_SERVER_ERROR, request);
-  }
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(
+            DataIntegrityViolationException ex,
+            WebRequest request) {
+        log.error("Data integrity violation", ex);
+        String message = Optional.ofNullable(ex.getRootCause())
+                .map(Throwable::getMessage)
+                .map(msg -> msg.contains("duplicate key") ? "An entry with these details already exists" : msg)
+                .orElse("Database constraint violation");
+        
+        return new ResponseEntity<>(
+                buildErrorResponse(message, HttpStatus.CONFLICT, request),
+                HttpStatus.CONFLICT);
+    }
 
-  private ResponseEntity<?> buildErrorResponse(String message, HttpStatus status,
-      WebRequest request) {
-    String path = (request instanceof ServletWebRequest)
-        ? ((ServletWebRequest) request).getRequest().getRequestURI()
-        : "Unknown";
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFoundException(
+            NotFoundException ex,
+            WebRequest request) {
+        log.warn("Resource not found: {}", ex.getMessage());
+        return new ResponseEntity<>(
+                buildErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, request),
+                HttpStatus.NOT_FOUND);
+    }
 
-    Map<String, Object> errorResponse = Map.of(
-        "status", status.value(),
-        "error", status.getReasonPhrase(),
-        "message", message,
-        "path", path,
-        "timestamp", OffsetDateTime.now()
-    );
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(
+            HttpMessageNotReadableException ex,
+            WebRequest request) {
+        log.warn("Message not readable: {}", ex.getMessage());
+        return new ResponseEntity<>(
+                buildErrorResponse("Invalid request body format",
+                        HttpStatus.BAD_REQUEST, request),
+                HttpStatus.BAD_REQUEST);
+    }
 
-    return ResponseEntity.status(status).body(errorResponse);
-  }
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(
+            MethodArgumentTypeMismatchException ex,
+            WebRequest request) {
+        String message = String.format("Parameter '%s' should be of type %s",
+                ex.getName(), ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown");
+        log.warn("Type mismatch: {}", message);
+        return new ResponseEntity<>(
+                buildErrorResponse(message, HttpStatus.BAD_REQUEST, request),
+                HttpStatus.BAD_REQUEST);
+    }
 
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingParams(
+            MissingServletRequestParameterException ex,
+            WebRequest request) {
+        String message = String.format("Missing required parameter '%s'", ex.getParameterName());
+        log.warn("Missing parameter: {}", message);
+        return new ResponseEntity<>(
+                buildErrorResponse(message, HttpStatus.BAD_REQUEST, request),
+                HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatusException(
+            ResponseStatusException ex,
+            WebRequest request) {
+        log.warn("Response status exception: {}", ex.getMessage());
+        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
+        return new ResponseEntity<>(
+                buildErrorResponse(ex.getReason(), status, request),
+                new HttpHeaders(),
+                status);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGenericException(
+            Exception ex,
+            WebRequest request) {
+        log.error("Unexpected error occurred", ex);
+        return new ResponseEntity<>(
+                buildErrorResponse(
+                        "An unexpected error occurred. Please try again later.",
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        request),
+                HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private ErrorResponse buildErrorResponse(String message, HttpStatus status, WebRequest request) {
+        String path = request instanceof ServletWebRequest
+                ? ((ServletWebRequest) request).getRequest().getRequestURI()
+                : "Unknown";
+
+        return new ErrorResponse(
+                status.value(),
+                status.getReasonPhrase(),
+                message,
+                path
+        );
+    }
 }
