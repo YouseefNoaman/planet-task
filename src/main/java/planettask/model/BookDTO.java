@@ -2,6 +2,8 @@ package planettask.model;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import lombok.Getter;
@@ -27,9 +29,11 @@ public class BookDTO implements Serializable {
   private String author;
 
   @NotNull
+  @PositiveOrZero
   private Integer availableCopies;
 
   @NotNull
+  @Positive
   private Integer totalCopies;
 
 }

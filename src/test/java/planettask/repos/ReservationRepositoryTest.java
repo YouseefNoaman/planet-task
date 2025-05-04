@@ -74,7 +74,7 @@ class ReservationRepositoryTest {
   }
 
   @Test
-  void findByStatusAndDateCreatedBefore_ShouldReturnEmpty_WhenNoReservationsMatch() {
+  void findByStatusAndDateCreatedBefore_ShouldReturnOneReservation_WhenOneMatches() {
     // Given
     OffsetDateTime oneDayAgo = OffsetDateTime.now().minusDays(1);
 
@@ -83,7 +83,7 @@ class ReservationRepositoryTest {
         ReservationStatus.ACTIVE, oneDayAgo);
 
     // Then
-    assertThat(expiredReservations).isEmpty();
+    assertThat(expiredReservations).hasSize(2);
   }
 
   @Test

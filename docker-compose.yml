@@ -2,8 +2,10 @@ version: '3.9'
 
 services:
   app:
-    build: .
-    container_name: spring_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: planet-app-backend
     depends_on:
       db:
         condition: service_healthy
@@ -22,7 +24,7 @@ services:
 
   db:
     image: postgres
-    container_name: postgres_db
+    container_name: planet-task-postgres_db
     restart: always
     environment:
       POSTGRES_DB: planet-task
@@ -40,7 +42,7 @@ services:
 
   redis:
     image: redis
-    container_name: redis_cache
+    container_name: planet-task-redis_cache
     restart: always
     ports:
       - "6379:6379"
@@ -55,3 +57,6 @@ services:
 networks:
   app_network:
     driver: bridge
+
+volumes:
+  postgres_data:
