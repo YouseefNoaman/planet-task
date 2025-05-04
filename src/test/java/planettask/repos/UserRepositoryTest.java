@@ -13,11 +13,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureTestEntityManager;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import lombok.extern.slf4j.Slf4j;
 import planettask.domain.User;
 
 @DataJpaTest
-@ExtendWith(SpringExtension.class)
 @AutoConfigureTestEntityManager
+@Slf4j
 public class UserRepositoryTest {
 
   @Autowired
@@ -66,7 +68,9 @@ public class UserRepositoryTest {
 
     // Then
     assertTrue(foundUser.isPresent(), "User should be found by ID.");
-    assertEquals("Emails should match.",user.getEmail(),  foundUser.get().getEmail());
+    log.info("User email: {}", user.getEmail());
+    log.info("Found user email: {}", foundUser.get().getEmail());
+    assertEquals(user.getEmail(),  foundUser.get().getEmail(),"Emails should match.");
   }
 
   @Test

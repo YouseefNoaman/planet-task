@@ -25,7 +25,6 @@ public class ErrorResponse {
         this.validationErrors = validationErrors;
     }
 
-    // Getters
     public int getStatus() {
         return status;
     }
