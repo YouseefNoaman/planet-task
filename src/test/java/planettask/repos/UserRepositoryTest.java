@@ -8,11 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureTestEntityManager;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import lombok.extern.slf4j.Slf4j;
 import planettask.domain.User;
@@ -20,7 +18,7 @@ import planettask.domain.User;
 @DataJpaTest
 @AutoConfigureTestEntityManager
 @Slf4j
-public class UserRepositoryTest {
+class UserRepositoryTest {
 
   @Autowired
   private UserRepository userRepository;
@@ -37,7 +35,7 @@ public class UserRepositoryTest {
   }
 
   @Test
-  public void testExistsByEmailIgnoreCase_UserExists() {
+  void testExistsByEmailIgnoreCase_UserExists() {
     // Given
 
     // When
@@ -48,7 +46,7 @@ public class UserRepositoryTest {
   }
 
   @Test
-  public void testExistsByEmailIgnoreCase_UserDoesNotExist() {
+  void testExistsByEmailIgnoreCase_UserDoesNotExist() {
     // When
     boolean exists = userRepository.existsByEmailIgnoreCase("notfound@example.com");
 
@@ -57,24 +55,24 @@ public class UserRepositoryTest {
   }
 
   @Test
-  public void testFindById_UserExists() {
+  void testFindById_UserExists() {
     // Given
-    User user = new User();
-    user.setEmail("found@example.com");
-    user.setUsername("Found User");
-    userRepository.save(user);
+    User savedUser = new User();
+    savedUser.setEmail("found@example.com");
+    savedUser.setUsername("Found User");
+    userRepository.save(savedUser);
     // When
-    Optional<User> foundUser = userRepository.findById(user.getUserId());
+    Optional<User> foundUser = userRepository.findById(savedUser.getUserId());
 
     // Then
     assertTrue(foundUser.isPresent(), "User should be found by ID.");
-    log.info("User email: {}", user.getEmail());
+    log.info("User email: {}", savedUser.getEmail());
     log.info("Found user email: {}", foundUser.get().getEmail());
-    assertEquals(user.getEmail(),  foundUser.get().getEmail(),"Emails should match.");
+    assertEquals(savedUser.getEmail(),  foundUser.get().getEmail(),"Emails should match.");
   }
 
   @Test
-  public void testFindById_UserDoesNotExist() {
+  void testFindById_UserDoesNotExist() {
     // When
     Optional<User> foundUser = userRepository.findById(999L);
 
@@ -83,25 +81,25 @@ public class UserRepositoryTest {
   }
 
   @Test
-  public void testExistsByEmailIgnoreCase_EmptyEmail() {
+  void testExistsByEmailIgnoreCase_EmptyEmail() {
     boolean exists = userRepository.existsByEmailIgnoreCase("");
 
     assertFalse(exists, "Empty email should not be found.");
   }
 
   @Test
-  public void testExistsByEmailIgnoreCase_NullEmail() {
+  void testExistsByEmailIgnoreCase_NullEmail() {
     boolean exists = userRepository.existsByEmailIgnoreCase(null);
 
     assertFalse(exists, "Null email should not be found.");
   }
 
   @Test
-  public void testExistsByEmailIgnoreCase_WhitespaceEmail() {
-    User user = new User();
-    user.setEmail("trimmed@example.com");
-    user.setUsername("Trimmed User");
-    userRepository.save(user);
+  void testExistsByEmailIgnoreCase_WhitespaceEmail() {
+    User existingUser = new User();
+    existingUser.setEmail("trimmed@example.com");
+    existingUser.setUsername("Trimmed User");
+    userRepository.save(existingUser);
 
     boolean exists = userRepository.existsByEmailIgnoreCase("   trimmed@example.com   ");
 
@@ -109,11 +107,11 @@ public class UserRepositoryTest {
   }
 
   @Test
-  public void testExistsByEmailIgnoreCase_PartialEmail() {
-    User user = new User();
-    user.setEmail("partial@example.com");
-    user.setUsername("Partial User");
-    userRepository.save(user);
+  void testExistsByEmailIgnoreCase_PartialEmail() {
+    User partialUser = new User();
+    partialUser.setEmail("partial@example.com");
+    partialUser.setUsername("Partial User");
+    userRepository.save(partialUser);
 
     boolean exists = userRepository.existsByEmailIgnoreCase("partial@");
     boolean exists2 = userRepository.existsByEmailIgnoreCase("example.com");
@@ -123,11 +121,11 @@ public class UserRepositoryTest {
   }
 
   @Test
-  public void testExistsByEmailIgnoreCase_SimilarButDifferentEmails() {
-    User user = new User();
-    user.setEmail("testUser@example.com");
-    user.setUsername("Test User2");
-    userRepository.save(user);
+  void testExistsByEmailIgnoreCase_SimilarButDifferentEmails() {
+    User existingUser = new User();
+    existingUser.setEmail("testUser@example.com");
+    existingUser.setUsername("Test User2");
+    userRepository.save(existingUser);
 
     boolean exists = userRepository.existsByEmailIgnoreCase("testUser@different.com");
 
@@ -135,11 +133,11 @@ public class UserRepositoryTest {
   }
 
   @Test
-  public void testExistsByEmailIgnoreCase_UnicodeEmail() {
-    User user = new User();
-    user.setEmail("tést@example.com");
-    user.setUsername("Unicode User");
-    userRepository.save(user);
+  void testExistsByEmailIgnoreCase_UnicodeEmail() {
+    User existingUser = new User();
+    existingUser.setEmail("tést@example.com");
+    existingUser.setUsername("Unicode User");
+    userRepository.save(existingUser);
 
     boolean exists = userRepository.existsByEmailIgnoreCase("tést@example.com");
 
